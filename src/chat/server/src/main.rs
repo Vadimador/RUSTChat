@@ -16,7 +16,7 @@ fn main() {
     println!("lancement d'un server");
     let server = TcpListener::bind(LOCAL).expect("Listener failed to bind");
     server.set_nonblocking(true).expect("failed to initialize non-blocking");
-
+    
     let mut clients = vec![];
     let (tx, rx) = mpsc::channel::<String>();
     loop {

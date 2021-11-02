@@ -1,1 +1,1 @@
-C:\Users\Fred\Documents\IT\ESGI\ 4\Rust\projetrust\Projet\RUSTChat\src\chat\server\target\debug\server.exe: C:\Users\Fred\Documents\IT\ESGI\ 4\Rust\projetrust\Projet\RUSTChat\src\chat\server\src\main.rs
+D:\Documents\COURS_ESGI\RUST\RUSTChat\src\chat\server\target\debug\server.exe: D:\Documents\COURS_ESGI\RUST\RUSTChat\src\chat\server\src\main.rs
