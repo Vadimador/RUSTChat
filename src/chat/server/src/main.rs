@@ -6,11 +6,14 @@ use std::thread;
 const LOCAL: &str = "127.0.0.1:6000";
 const MSG_SIZE: usize = 32;
 
+
+
 fn sleep() {
     thread::sleep(::std::time::Duration::from_millis(100));
 }
 
 fn main() {
+    println!("lancement d'un server");
     let server = TcpListener::bind(LOCAL).expect("Listener failed to bind");
     server.set_nonblocking(true).expect("failed to initialize non-blocking");
 
