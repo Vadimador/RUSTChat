@@ -14,17 +14,17 @@ fn sleep() {
 
 fn main() {
     println!("lancement d'un server");
-    let server = TcpListener::bind(LOCAL).expect("Listener failed to bind");
-    server.set_nonblocking(true).expect("failed to initialize non-blocking");
+    let server = TcpListener::bind(LOCAL).expect("Échec de la liaison bind");
+    server.set_nonblocking(true).expect("Echec de l'initialisation en mode non-blocking");
 
     let mut clients = vec![];
     let (tx, rx) = mpsc::channel::<String>();
     loop {
         if let Ok((mut socket, addr)) = server.accept() {
-            println!("Client {} connected", addr);
+            println!("Client {} connecté", addr);
 
             let tx = tx.clone();
-            clients.push(socket.try_clone().expect("failed to clone client"));
+            clients.push(socket.try_clone().expect("échec du clonage du client"));
 
             thread::spawn(move || loop {
                 let mut buff = vec![0; MSG_SIZE];
@@ -32,14 +32,13 @@ fn main() {
                 match socket.read_exact(&mut buff) {
                     Ok(_) => {
                         let msg = buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>();
-                        let msg = String::from_utf8(msg).expect("Invalid utf8 message");
-
+                        let msg = String::from_utf8(msg).expect("Message utf8 invalide");
                         println!("{}: {:?}", addr, msg);
-                        tx.send(msg).expect("failed to send msg to rx");
+                        tx.send(msg).expect("échec de l'envoi de msg à rx");
                     }, 
                     Err(ref err) if err.kind() == ErrorKind::WouldBlock => (),
                     Err(_) => {
-                        println!("closing connection with: {}", addr);
+                        println!("fermeture de la connexion avec : {}", addr);
                         break;
                     }
                 }
