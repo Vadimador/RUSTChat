@@ -14,6 +14,7 @@ fn sleep() {
 
 fn main() {
     println!("lancement d'un server");
+
     let server = TcpListener::bind(LOCAL).expect("Échec de la liaison bind");
     server.set_nonblocking(true).expect("Echec de l'initialisation en mode non-blocking");
 
