@@ -1,3 +1,13 @@
+// État des demandes du prof pour le serveur :
+//  - ownership : tchek
+//  - borrowing : tchek
+//  - des collections : theck, il y a un vecteur
+//  - des tests : X
+//  - de la propagation d'erreur : bof
+//  - des structures : X
+//  - des enums : X
+//  - des threads : OUI !
+
 use std::io::{ErrorKind, Read, Write};
 use std::net::TcpListener;
 use std::sync::mpsc;
