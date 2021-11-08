@@ -70,3 +70,11 @@ fn main() {
         sleep();
     }
 }
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn testing_test(){
+        assert_eq!(2 + 2,4);
+    }
+}
