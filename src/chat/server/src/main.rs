@@ -14,9 +14,9 @@ use std::sync::mpsc;
 use std::thread;
 
 const LOCAL: &str = "127.0.0.1:6000";
-const MSG_SIZE: usize = 32;
+const MSG_SIZE: usize = 64;
 
-
+struct Client(std::net::TcpStream,String);
 
 fn sleep() {
     thread::sleep(::std::time::Duration::from_millis(100));
@@ -35,7 +35,8 @@ fn main() {
             println!("Client {} connecté", addr);
 
             let tx = tx.clone();
-            clients.push(socket.try_clone().expect("échec du clonage du client"));
+            //clients.push(socket.try_clone().expect("échec du clonage du client"));
+            clients.push(Client(socket.try_clone().expect("échec du clonage du client"),String::from("unknown")));
 
             thread::spawn(move || loop {
                 let mut buff = vec![0; MSG_SIZE];
@@ -63,7 +64,7 @@ fn main() {
                 let mut buff = msg.clone().into_bytes();
                 buff.resize(MSG_SIZE, 0);
 
-                client.write_all(&buff).map(|_| client).ok()
+                client.0.write_all(&buff).map(|_| client).ok()
             }).collect::<Vec<_>>();
         }
 
