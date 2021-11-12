@@ -50,7 +50,7 @@ fn main() {
                 let mut buff = msg.clone().into_bytes();
                 buff.resize(MSG_SIZE, 0);
                 client.write_all(&buff).expect("l'écriture sur le socket a échoué");
-                println!("{:?}", msg);
+                //println!("{:?}", msg);
             }, 
             Err(TryRecvError::Empty) => (),
             Err(TryRecvError::Disconnected) => break
