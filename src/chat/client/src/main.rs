@@ -64,10 +64,27 @@ fn main() {
         let mut buff = String::new();
         io::stdin().read_line(&mut buff).expect("la lecture à partir de stdin a échoué");
         // ----------------------------------------------- Test pour savoir les commandes
-        if buff.find(":name") != Option::None {
-            let svec : Vec<&str> = buff.split(" ").collect();
-            name = svec[1].trim().to_owned();
-            println!("Votre nouveau nom est : {}",name.as_str());
+        if buff.chars().next().unwrap() == ':' {        
+            if buff.find(":name") != Option::None { // =========================== changer de pseudo quand on est anonymous
+                let svec : Vec<&str> = buff.split(" ").collect();
+                name = svec[1].trim().to_owned();
+                println!("Votre nouveau nom est : {}",name.as_str());
+            }
+            else if buff.find(":new_account") != Option::None{ // ================ créer un nouvel account
+                let svec : Vec<&str> = buff.split(" ").collect();
+                let account_name = svec[1].trim().to_owned();
+                let account_mdp = svec[2].trim().to_owned();
+
+                let mut msg : String = String::from("!! ");
+                msg.push_str(&account_name.trim());
+                msg.push_str(" ");
+                msg.push_str(&account_mdp.trim());
+                //let msg = buff.trim().to_string();
+                tx.send(msg).expect("un problème est intervenu");
+            }
+            else {
+                eprintln!("/!\\ La commande proposé n'existe pas.");
+            }
         }
         else {
             let mut msg : String = name.clone();

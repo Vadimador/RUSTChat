@@ -12,6 +12,9 @@ use std::io::{ErrorKind, Read, Write};
 use std::net::TcpListener;
 use std::sync::mpsc;
 use std::thread;
+//use std::fs::File;
+use std::fs;
+//use std::io::prelude::*;
 
 const LOCAL: &str = "127.0.0.1:6000";
 const MSG_SIZE: usize = 64;
@@ -45,8 +48,31 @@ fn main() {
                     Ok(_) => {
                         let msg = buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>();
                         let msg = String::from_utf8(msg).expect("Message utf8 invalide");
-                        println!("{}: {:?}", addr, msg);
-                        tx.send(msg).expect("échec de l'envoi de msg à rx");
+                        // -------------------------------------- test pour créer un compte
+                        if msg.chars().nth(0).unwrap() == '!' && msg.chars().nth(1).unwrap() == '!' {
+                            println!("demande de création d'un nouvelle account reçu !");
+                            let svec : Vec<&str> = msg.split(" ").collect();
+                            let account_name = svec[1].trim().to_owned();
+                            let account_mdp = svec[2].trim().to_owned();
+                            println!("username : {}   Mot de passe : {}",account_name,account_mdp);
+                            
+                            //let mut file = File::open("account.txt").unwrap();
+                            //file.write_all(&data.into_bytes()).expect("Impossible d'écrire dans le fichier account.txt"); // problème de permissions
+                            let mut data = fs::read_to_string("account.txt").unwrap();
+                            data.push_str("\n");
+                            data.push_str(account_name.trim());
+                            data.push_str(":");
+                            data.push_str(account_mdp.trim());
+                            
+                            fs::write("account.txt",data).expect("Impossible d'écrire dans le fichier.");
+                           
+
+                        } 
+                        else{
+                            println!("{}: {:?}", addr, msg);
+                            tx.send(msg).expect("échec de l'envoi de msg à rx"); 
+                        }
+                       
                     }, 
                     Err(ref err) if err.kind() == ErrorKind::WouldBlock => (),
                     Err(_) => {
