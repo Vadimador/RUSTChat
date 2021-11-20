@@ -2,9 +2,11 @@ use std::io::{ErrorKind, Read, Write};
 use std::net::TcpListener;
 use std::sync::mpsc;
 use std::thread;
+use magic_crypt::MagicCryptTrait;
+use magic_crypt::new_magic_crypt;
 
 const LOCAL: &str = "127.0.0.1:6000";
-const MSG_SIZE: usize = 32;
+const MSG_SIZE: usize = 100;
 
 
 
@@ -15,9 +17,13 @@ fn sleep() {
 fn main() {
     println!("lancement d'un server");
     let server = TcpListener::bind(LOCAL).expect("Listener failed to bind");
+
+
     server.set_nonblocking(true).expect("failed to initialize non-blocking");
+    
 
     let mut clients = vec![];
+
     let (tx, rx) = mpsc::channel::<String>();
     loop {
         if let Ok((mut socket, addr)) = server.accept() {
@@ -31,12 +37,16 @@ fn main() {
 
                 match socket.read_exact(&mut buff) {
                     Ok(_) => {
+                        // on récupère le message ici et on déchiffre
+                        let mc = new_magic_crypt!("magickey", 256);
                         let msg = buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>();
                         let msg = String::from_utf8(msg).expect("Invalid utf8 message");
+                        let msg = mc.decrypt_base64_to_string(&msg).unwrap();
 
                         println!("{}: {:?}", addr, msg);
                         tx.send(msg).expect("failed to send msg to rx");
                     }, 
+
                     Err(ref err) if err.kind() == ErrorKind::WouldBlock => (),
                     Err(_) => {
                         println!("closing connection with: {}", addr);

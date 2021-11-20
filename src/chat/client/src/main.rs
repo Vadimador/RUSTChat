@@ -3,14 +3,15 @@ use std::net::TcpStream;
 use std::sync::mpsc::{self, TryRecvError};
 use std::thread;
 use std::time::Duration;
+use std::str;
+use magic_crypt::MagicCryptTrait;
+use magic_crypt::new_magic_crypt;
+
 
 const LOCAL: &str = "127.0.0.1:6000";
-const MSG_SIZE: usize = 32;
-
-
+const MSG_SIZE: usize = 100;
 
 fn main() {
-    println!("lancement d'un client");
     let mut client = TcpStream::connect(LOCAL).expect("Stream failed to connect");
     client.set_nonblocking(true).expect("failed to initiate non-blocking");
 
@@ -47,9 +48,16 @@ fn main() {
     println!("Write a Message:");
     loop {
         let mut buff = String::new();
+
         io::stdin().read_line(&mut buff).expect("reading from stdin failed");
+
+        let mc = new_magic_crypt!("magickey", 256);
         let msg = buff.trim().to_string();
-        if msg == ":quit" || tx.send(msg).is_err() {break}
+        
+        let ciphertext = mc.encrypt_str_to_base64(&msg);
+
+
+        if ciphertext == ":quit" || tx.send(ciphertext).is_err() {break}
     }
     println!("bye bye!");
 
