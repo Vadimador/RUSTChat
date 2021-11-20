@@ -1,3 +1,13 @@
+// État des demandes du prof pour le serveur :
+//  - ownership : tchek
+//  - borrowing : tchek
+//  - des collections : theck, il y a un vecteur
+//  - des tests : X
+//  - de la propagation d'erreur : bof
+//  - des structures : nope 
+//  - des enums : ... non plus
+//  - des threads : OUI !
+
 use std::io::{self, ErrorKind, Read, Write};
 use std::net::TcpStream;
 use std::sync::mpsc::{self, TryRecvError};
@@ -12,8 +22,9 @@ const LOCAL: &str = "127.0.0.1:6000";
 const MSG_SIZE: usize = 100;
 
 fn main() {
-    let mut client = TcpStream::connect(LOCAL).expect("Stream failed to connect");
-    client.set_nonblocking(true).expect("failed to initiate non-blocking");
+    println!("lancement d'un client");
+    let mut client = TcpStream::connect(LOCAL).expect("Le Stream n'a pas réussi à se connecter");
+    client.set_nonblocking(true).expect("Echec de l'initialisation en mode non-blocking");
 
     let (tx, rx) = mpsc::channel::<String>();
 
@@ -22,11 +33,11 @@ fn main() {
         match client.read_exact(&mut buff) {
             Ok(_) => {
                 let msg = buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>();
-                println!("message recv {:?}", msg);
+                println!("Message reçu {:?}", msg);
             },
             Err(ref err) if err.kind() == ErrorKind::WouldBlock => (),
             Err(_) => {
-                println!("connection with server was severed");
+                println!("la connexion avec le serveur a été coupée !");
                 break;
             }
         }
@@ -35,8 +46,8 @@ fn main() {
             Ok(msg) => {
                 let mut buff = msg.clone().into_bytes();
                 buff.resize(MSG_SIZE, 0);
-                client.write_all(&buff).expect("writing to socket failed");
-                println!("message sent {:?}", msg);
+                client.write_all(&buff).expect("l'écriture sur le socket a échoué");
+                println!("message envoyé {:?}", msg);
             }, 
             Err(TryRecvError::Empty) => (),
             Err(TryRecvError::Disconnected) => break
@@ -45,13 +56,13 @@ fn main() {
         thread::sleep(Duration::from_millis(100));
     });
 
-    println!("Write a Message:");
+    println!("Écrire un message:");
     loop {
         let mut buff = String::new();
-
-        io::stdin().read_line(&mut buff).expect("reading from stdin failed");
-
         let mc = new_magic_crypt!("magickey", 256);
+
+        io::stdin().read_line(&mut buff).expect("la lecture à partir de stdin a échoué");
+
         let msg = buff.trim().to_string();
         
         let ciphertext = mc.encrypt_str_to_base64(&msg);
@@ -59,6 +70,6 @@ fn main() {
 
         if ciphertext == ":quit" || tx.send(ciphertext).is_err() {break}
     }
-    println!("bye bye!");
+    println!("Aurevoir, à bientôt!");
 
 }
