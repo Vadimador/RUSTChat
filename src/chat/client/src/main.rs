@@ -68,7 +68,7 @@ fn main() {
         let ciphertext = mc.encrypt_str_to_base64(&msg);
 
 
-        if ciphertext == ":quit" || tx.send(ciphertext).is_err() {break}
+        if ciphertext == "NWNzj3mymRC2+L9S2mhsKQ==" || tx.send(ciphertext).is_err() {break}
     }
     println!("Aurevoir, à bientôt!");
 
