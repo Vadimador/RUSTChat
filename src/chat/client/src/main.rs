@@ -17,7 +17,6 @@ use std::str;
 use magic_crypt::MagicCryptTrait;
 use magic_crypt::new_magic_crypt;
 
-
 const LOCAL: &str = "127.0.0.1:6000";
 const MSG_SIZE: usize = 100;
 
@@ -27,13 +26,18 @@ fn main() {
     client.set_nonblocking(true).expect("Echec de l'initialisation en mode non-blocking");
 
     let (tx, rx) = mpsc::channel::<String>();
-
+    let mut name : String = "anonymous".to_owned();
     thread::spawn(move || loop {
         let mut buff = vec![0; MSG_SIZE];
+        //let name = &name;
         match client.read_exact(&mut buff) {
             Ok(_) => {
                 let msg = buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>();
-                println!("Message reçu {:?}", msg);
+                let msg = String::from_utf8(msg).ok().unwrap();
+                
+               //if msg.find(&name.clone()) == Option::None {
+                    println!("{:?}",msg);
+               //}
             },
             Err(ref err) if err.kind() == ErrorKind::WouldBlock => (),
             Err(_) => {
@@ -47,7 +51,6 @@ fn main() {
                 let mut buff = msg.clone().into_bytes();
                 buff.resize(MSG_SIZE, 0);
                 client.write_all(&buff).expect("l'écriture sur le socket a échoué");
-                println!("message envoyé {:?}", msg);
             }, 
             Err(TryRecvError::Empty) => (),
             Err(TryRecvError::Disconnected) => break
@@ -62,14 +65,57 @@ fn main() {
         let mc = new_magic_crypt!("magickey", 256);
 
         io::stdin().read_line(&mut buff).expect("la lecture à partir de stdin a échoué");
+        // ----------------------------------------------- Test pour savoir les commandes
+        if buff.chars().next().unwrap() == ':' {        
+            if buff.find(":name") != Option::None { // =========================== changer de pseudo quand on est anonymous
+                let svec : Vec<&str> = buff.split(" ").collect();
+                name = svec[1].trim().to_owned();
+                println!("Votre nouveau nom est : {}",name.as_str());
+            }
+            else if buff.find(":new_account") != Option::None{ // ================ créer un nouvel account
+                let svec : Vec<&str> = buff.split(" ").collect();
+                let account_name = svec[1].trim().to_owned();
+                let account_mdp = svec[2].trim().to_owned();
 
-        let msg = buff.trim().to_string();
-        
-        let ciphertext = mc.encrypt_str_to_base64(&msg);
+                let mut msg : String = String::from("!!create ");
+                msg.push_str(&account_name.trim());
+                msg.push_str(" ");
+                msg.push_str(&account_mdp.trim());
+                //let msg = buff.trim().to_string();
+                tx.send(msg).expect("un problème est intervenu");
+            }
+            else if buff.find(":connect") != Option::None{ // =================== se connecter à un compte déjà crée
+                let svec : Vec<&str> = buff.split(" ").collect();
+                let account_name = svec[1].trim().to_owned();
+                let account_mdp = svec[2].trim().to_owned();
 
-
-        if ciphertext == "NWNzj3mymRC2+L9S2mhsKQ==" || tx.send(ciphertext).is_err() {break}
+                let mut msg : String = String::from("!!connect ");
+                msg.push_str(&account_name.trim());
+                msg.push_str(" ");
+                msg.push_str(&account_mdp.trim());
+                //let msg = buff.trim().to_string();
+                tx.send(msg).expect("un problème est intervenu");
+            }
+            else {
+                eprintln!("/!\\ La commande proposé n'existe pas.");
+            }
+        }
+        else {
+            let mut msg : String = name.clone();
+            msg.push_str(" : ");
+            msg.push_str(&buff.trim());
+            let ciphertext = mc.encrypt_str_to_base64(&msg);
+            if ciphertext == "NWNzj3mymRC2+L9S2mhsKQ==" || tx.send(ciphertext).is_err() {break}
+        }
     }
     println!("Aurevoir, à bientôt!");
 
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn testing_test(){
+        assert_eq!(2 + 2,4);
+    }
 }
