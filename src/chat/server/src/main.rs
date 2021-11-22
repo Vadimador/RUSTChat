@@ -1,10 +1,10 @@
 // État des demandes du prof pour le serveur :
-//  - ownership : tchek
-//  - borrowing : tchek
+//  - ownership : OUI
+//  - borrowing : OUI
 //  - des collections : theck, il y a un vecteur
 //  - des tests : X
 //  - de la propagation d'erreur : bof
-//  - des structures : X
+//  - des structures : OUI
 //  - des enums : X
 //  - des threads : OUI !
 

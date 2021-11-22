@@ -17,6 +17,16 @@ use std::time::Duration;
 const LOCAL: &str = "127.0.0.1:6000";
 const MSG_SIZE: usize = 32;
 
+// test connexion tcpStream 
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_tcpstream() {
+        use std::net::TcpStream;        
+        const LOCAL: &str = "127.0.0.1:6000";
+        let mut test = TcpStream::connect(LOCAL).expect("Le Stream n'a pas reussi a se connecter");
+    }
+}
 
 
 fn main() {
