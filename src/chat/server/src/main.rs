@@ -83,9 +83,6 @@ fn main() {
                                 data.push_str(account_mdp.trim());
 
                                 stx.send(data).expect("Problème concernant l'envoi sur stx");
-                                //println!("alors c'est censé fonctionner ...");
-                                //socket.0.write_all("!! omg bro".as_bytes()).expect("Probleme lors de l'envoi de la réponse");
-                                //println!("pas de soucis détécté");
                                 
                             }
                             else {
@@ -131,23 +128,18 @@ fn main() {
         }
 
         if let Ok(msg) = srx.try_recv() {
-            //for client in &clients {
             let svec : Vec<&str> = msg.split(" ").collect();
             let account_ip = svec[0].trim().to_owned();
-            for client in &clients {
-                println!("if {} == {}",account_ip,&client.1);
+
+            for client in &mut clients {
                 if account_ip.eq(&client.1) {
-                    println!("c'est censé marcher...");
-                    (&client.0).write("hello bro".as_bytes()).expect("error : écrite à un client");
+                    let mut buff2 = String::from("!!connected").into_bytes();
+                    buff2.resize(MSG_SIZE, 0);
+                    //let monclient = &mut client.0;
+                    client.0.write_all(&buff2).expect("erreur");
                     break;
                 }
             }
-            //let account_name = svec[1].trim().to_owned();
-            //let account_mdp = svec[2].trim().to_ow
-            //hashclients.insert(account_ip.trim().to_owned(), account_name.trim().to_owned());
-            println!("boubtidoup : {}",msg);
-            //}
-            //println!("Reçu un hello !")
         }
         sleep();
     }
