@@ -50,7 +50,6 @@ fn main() {
                 let mut buff = msg.clone().into_bytes();
                 buff.resize(MSG_SIZE, 0);
                 client.write_all(&buff).expect("l'écriture sur le socket a échoué");
-                //println!("{:?}", msg);
             }, 
             Err(TryRecvError::Empty) => (),
             Err(TryRecvError::Disconnected) => break
@@ -75,7 +74,19 @@ fn main() {
                 let account_name = svec[1].trim().to_owned();
                 let account_mdp = svec[2].trim().to_owned();
 
-                let mut msg : String = String::from("!! ");
+                let mut msg : String = String::from("!!create ");
+                msg.push_str(&account_name.trim());
+                msg.push_str(" ");
+                msg.push_str(&account_mdp.trim());
+                //let msg = buff.trim().to_string();
+                tx.send(msg).expect("un problème est intervenu");
+            }
+            else if buff.find(":connect") != Option::None{ // =================== se connecter à un compte déjà crée
+                let svec : Vec<&str> = buff.split(" ").collect();
+                let account_name = svec[1].trim().to_owned();
+                let account_mdp = svec[2].trim().to_owned();
+
+                let mut msg : String = String::from("!!connect ");
                 msg.push_str(&account_name.trim());
                 msg.push_str(" ");
                 msg.push_str(&account_mdp.trim());
