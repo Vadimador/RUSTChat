@@ -8,6 +8,7 @@
 //  - des enums : X
 //  - des threads : OUI !
 
+
 use std::io::{ErrorKind, Read, Write};
 use std::net::TcpListener;
 use std::sync::mpsc;
@@ -15,7 +16,7 @@ use std::thread;
 use magic_crypt::MagicCryptTrait;
 use magic_crypt::new_magic_crypt;
 use std::fs;
-use std::collections::HashMap;
+use sha2::{Sha256, Digest};
 
 const LOCAL: &str = "127.0.0.1:6000";
 const MSG_SIZE: usize = 100;
@@ -34,7 +35,7 @@ fn main() {
     server.set_nonblocking(true).expect("Echec de l'initialisation en mode non-blocking");
 
     let mut clients = vec![]; // les clients
-    let mut hashclients = HashMap::<String,String>::new();
+
 
     let (tx, rx) = mpsc::channel::<String>(); // channel principal commun
     let (stx, srx) = mpsc::channel::<String>(); // channel spécial pour les changements de compte
@@ -57,24 +58,22 @@ fn main() {
                         let msg = String::from_utf8(msg).expect("Message utf8 invalide");
                         let msg = mc.decrypt_base64_to_string(&msg).unwrap();
                         // -------------------------------------- test pour créer un compte
-                        if msg.chars().nth(0).unwrap() == '!' && msg.chars().nth(1).unwrap() == '!' {
+                        if msg.starts_with('!') && msg.chars().nth(1).unwrap() == '!' {
                             if msg.find("!!create") != Option::None {
                                 println!("demande de création d'un nouvelle account reçu !");
-                                let svec : Vec<&str> = msg.split(" ").collect();
+                                let svec : Vec<&str> = msg.split(' ').collect();
                                 let account_name = svec[1].trim().to_owned();
                                 let account_mdp = svec[2].trim().to_owned();
                                 // -------------------------------------------- mrjoker hasher le mot de passe
-                                
-
 
                                 //--------------------------------------- fin
                                 // ----------------------------------------- Ritchie vérifier que l'utilisateur n'existe pas déjà
                                 let contenu = fs::read_to_string("account.txt").expect("Quelque chose s'est mal passé lors de la lecture du fichier");
-                                let svec : Vec<&str> = contenu.split("\n").collect();
+                                let svec : Vec<&str> = contenu.split('\n').collect();
                                 let mut existe = false;
                                 //println!("{:?}",svec1);
                                 for x in & svec {
-                                    let exist : Vec<&str> = x.split(":").collect();
+                                    let exist : Vec<&str> = x.split(':').collect();
                                     //println!("{} = {}", account_name, exist[0]);
                                     if account_name.eq(&exist[0]) {
                                         println!("l'utilisateur existe déjà");
@@ -83,28 +82,33 @@ fn main() {
                                     }
                                     
                                 }
+
+                                
+
                                 // ----------------------------------------- fin
                                 if !existe {
+                                    let account_mdp = hash(&account_mdp);
+
                                     println!("username : {}   Mot de passe : {}",account_name,account_mdp);
                                     
                                     let mut data = fs::read_to_string("account.txt").unwrap();
-                                    data.push_str("\n");
+                                    data.push('\n');
                                     data.push_str(account_name.trim());
-                                    data.push_str(":");
+                                    data.push(':');
                                     data.push_str(account_mdp.trim());
                                     
                                     fs::write("account.txt",data).expect("Impossible d'écrire dans le fichier.");
                                 }
                             }
                             else if msg.find("!!connect") != Option::None {
-                                let svec : Vec<&str> = msg.split(" ").collect();
+                                let svec : Vec<&str> = msg.split(' ').collect();
                                 let account_name = svec[1].trim().to_owned();
                                 let account_mdp = svec[2].trim().to_owned();
 
                                 let mut data = addr.to_string();
-                                data.push_str(" ");
+                                data.push(' ');
                                 data.push_str(account_name.trim());
-                                data.push_str(" ");
+                                data.push(' ');
                                 data.push_str(account_mdp.trim());
 
                                 stx.send(data).expect("Problème concernant l'envoi sur stx");
@@ -151,17 +155,18 @@ fn main() {
         }
 
         if let Ok(msg) = srx.try_recv() {
-            let svec : Vec<&str> = msg.split(" ").collect();
+            let svec : Vec<&str> = msg.split(' ').collect();
             let account_ip = svec[0].trim().to_owned();
             let account_name = svec[1].trim().to_owned();
             let account_mdp = svec[2].trim().to_owned();
-            
+
+            let account_mdp = hash(&account_mdp);
             // ---- On vérifie que les informations donnée par l'utilisateur sont correct
             let contenu = fs::read_to_string("account.txt").expect("Quelque chose s'est mal passé lors de la lecture du fichier");
-            let svec : Vec<&str> = contenu.split("\n").collect();
+            let svec : Vec<&str> = contenu.split('\n').collect();
             let mut exist = false;
             for x in & svec {
-                let ctab : Vec<&str> = x.split(":").collect();
+                let ctab : Vec<&str> = x.split(':').collect();
                 if account_name.eq(ctab[0].trim()) {
                     if account_mdp.eq(ctab[1].trim()) {
                         println!("{} s'est connecté !",account_name);
@@ -194,6 +199,23 @@ fn send_to_client(client : &mut Client, msg: String) {
     let mut msg = msg.into_bytes();
     msg.resize(MSG_SIZE, 0);
     client.0.write_all(&msg).expect("erreur");
+}
+
+
+fn hash(s : &str) -> String {
+    let mut hasher = Sha256::new();
+
+    hasher.update(&s);
+
+    let result = hasher.finalize();
+    
+    let mut temp = String::new();
+
+    for x in result{
+        temp.push_str(&x.to_string());
+    
+    }
+    temp
 }
 
 #[cfg(test)]
