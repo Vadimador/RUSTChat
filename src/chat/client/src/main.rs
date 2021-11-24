@@ -35,10 +35,10 @@ const MSG_SIZE: usize = 100;
 
 fn main() {
     println!("lancement d'un client");
-    let mut client = TcpStream::connect(LOCAL).expect("Le Stream n'a pas réussi à se connecter");
+    let mut client = TcpStream::connect(LOCAL).expect("Le Stream n'a pas réussi à se connecter"); // connexion via tunnel en tcp (socket)
     client.set_nonblocking(true).expect("Echec de l'initialisation en mode non-blocking");
 
-    let (tx, rx) = mpsc::channel::<String>();
+    let (tx, rx) = mpsc::channel::<String>(); // permet la communication entre tous les thread locaux.
 
     let mut name : String = "anonymous".to_owned();
     let mut name_connected = "✅ bruh".to_owned();
@@ -60,14 +60,14 @@ fn main() {
                 
                 if !msg.is_empty() {
                     if msg.starts_with('!') && msg.chars().nth(1).unwrap() == '!' {
-                        if msg.find("!!connected") != Option::None {
+                        if msg.find("!!connected") != Option::None { // lorsque l'utilisateur se connecte à un compte
                             name_connected = String::from("✅ ");
                             let svec : Vec<&str> = msg.split(' ').collect();
                             name_connected.push_str(svec[1]);
                             anon = false;
                             println!("Vous êtes connecté en tant que \"{}\"",svec[1]);
                         }
-                        else if msg.find("!!error") != Option::None {
+                        else if msg.find("!!error") != Option::None { // si il fail
                             println!("Le nom d'utilisateur ou le mot de passe est incorrect.");
                         }
                     }

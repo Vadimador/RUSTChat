@@ -22,7 +22,7 @@ const LOCAL: &str = "127.0.0.1:6000";
 const MSG_SIZE: usize = 100;
 
 
-struct Client(std::net::TcpStream,String); // le sting et l'ip:port du stream
+struct Client(std::net::TcpStream,String); // le string et l'ip:port du stream
 
 fn sleep() {
     thread::sleep(::std::time::Duration::from_millis(100));
@@ -213,7 +213,6 @@ fn hash(s : &str) -> String {
 
     for x in result{
         temp.push_str(&x.to_string());
-    
     }
     temp
 }
