@@ -86,30 +86,51 @@ fn main() {
             if buff.starts_with(':') {        
                 if buff.find(":name") != Option::None { // =========================== changer de pseudo quand on est anonymous
                     let svec : Vec<&str> = buff.split(' ').collect();
-                    name = svec[1].trim().to_owned();
-                    println!("Votre nouveau nom d'anonyme est : {}",name.as_str());
+                    if svec.len() == 2 {
+                        
+                        if !svec[1].trim().starts_with('✅') {
+                            name = svec[1].trim().to_owned();
+                            println!("Votre nouveau nom d'anonyme est : {}",name.as_str());
+                        }
+                        else {
+                            println!("Impossible d'avoir ce nom là");
+                        }
+                    }
+                    else {
+                        println!("erreur dans le nombre d'argument, tapez \":help\" pour plus d'information");
+                    }
                 }
                 else if buff.find(":new_account") != Option::None{ // ================ créer un nouvel account
-                    let svec : Vec<&str> = buff.split(' ').collect();
-                    let account_name = svec[1].trim().to_owned();
-                    let account_mdp = svec[2].trim().to_owned();
+                        let svec : Vec<&str> = buff.split(' ').collect();
+                    if svec.len() == 3 {
+                        let account_name = svec[1].trim().to_owned();
+                        let account_mdp = svec[2].trim().to_owned();
 
-                    let mut msg : String = String::from("!!create ");
-                    msg.push_str(account_name.trim());
-                    msg.push(' ');
-                    msg.push_str(account_mdp.trim());
-                    send(&mut client, msg);
+                        let mut msg : String = String::from("!!create ");
+                        msg.push_str(account_name.trim());
+                        msg.push(' ');
+                        msg.push_str(account_mdp.trim());
+                        send(&mut client, msg);
+                    }
+                    else {
+                        println!("erreur dans le nombre d'argument, tapez \":help\" pour plus d'information.");
+                    }
                 }
                 else if buff.find(":connect") != Option::None{ // =================== se connecter à un compte déjà crée
                     let svec : Vec<&str> = buff.split(' ').collect();
-                    let account_name = svec[1].trim().to_owned();
-                    let account_mdp = svec[2].trim().to_owned();
+                    if svec.len() == 3 {
+                        let account_name = svec[1].trim().to_owned();
+                        let account_mdp = svec[2].trim().to_owned();
 
-                    let mut msg : String = String::from("!!connect ");
-                    msg.push_str(account_name.trim());
-                    msg.push(' ');
-                    msg.push_str(account_mdp.trim());
-                    send(&mut client, msg);
+                        let mut msg : String = String::from("!!connect ");
+                        msg.push_str(account_name.trim());
+                        msg.push(' ');
+                        msg.push_str(account_mdp.trim());
+                        send(&mut client, msg);
+                    }
+                    else {
+                        println!("erreur dans le nombre d'argument, tapez \":help\" pour plus d'information.");
+                    }
                 }
                 else if buff.find(":quit") != Option::None {
                     if !anon {
@@ -120,6 +141,13 @@ fn main() {
                        break; 
                     }
                     
+                }
+                else if buff.find(":help") != Option::None {
+                    println!("Commandes existantes : ");
+                    println!("  :name <pseudo> --> change votre pseudo d'anonyme.");
+                    println!("  :new_account <pseudo> <mot de passe> --> créer un nouveau compte.");
+                    println!("  :connect <pseudo> <mot de passe> --> vous connecte à un compte déjà créer.");
+                    println!("  :quit --> vous déconnecte d'un compte ou ferme la connexion distante.");
                 }
                 else {
                     eprintln!("/!\\ La commande proposé n'existe pas.");
