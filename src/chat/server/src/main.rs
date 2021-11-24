@@ -147,7 +147,7 @@ fn main() {
 
             for client in &mut clients {
                 if account_ip.eq(&client.1) {
-                    let mut buff2 = String::from("!!connected").into_bytes();
+                    let mut buff2 = String::from("!!connected pseudo").into_bytes();
                     buff2.resize(MSG_SIZE, 0);
                     //let monclient = &mut client.0;
                     client.0.write_all(&buff2).expect("erreur");
