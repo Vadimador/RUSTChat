@@ -154,7 +154,7 @@ fn main() {
                 }
             }
             else {
-                let mc = new_magic_crypt!("magickey", 256);
+                //let mc = new_magic_crypt!("magickey", 256);
                 let mut msg : String;
                 if anon {
                     msg = name.clone();
@@ -164,8 +164,8 @@ fn main() {
                 }
                 msg.push_str(" : ");
                 msg.push_str(buff.trim());
-                let ciphertext = mc.encrypt_str_to_base64(&msg);
-                send(&mut client,ciphertext);
+               
+                send(&mut client,msg);
             }
         }
     }
@@ -174,6 +174,8 @@ fn main() {
 }
 
 fn send(client : &mut std::net::TcpStream, msg : String) {
+    let mc = new_magic_crypt!("magickey", 256);
+    let msg = mc.encrypt_str_to_base64(&msg);
     let mut msg = msg.into_bytes();
     msg.resize(MSG_SIZE, 0);
     client.write_all(&msg).expect("l'écriture sur le socket a échoué");
