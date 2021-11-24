@@ -67,18 +67,32 @@ fn main() {
 
                                 //--------------------------------------- fin
                                 // ----------------------------------------- Ritchie vérifier que l'utilisateur n'existe pas déjà
-
-
+                                let contenu = fs::read_to_string("account.txt").expect("Quelque chose s'est mal passé lors de la lecture du fichier");
+                                let svec1 : Vec<&str> = contenu.split("\n").collect();
+                                let mut existe = false;
+                                //println!("{:?}",svec1);
+                                for x in & svec1 {
+                                    let exist : Vec<&str> = x.split(":").collect();
+                                    //println!("{} = {}", account_name, exist[0]);
+                                    if account_name.eq(&exist[0]) {
+                                        println!("l'utilisateur existe déjà");
+                                        existe = true;
+                                        break;
+                                    }
+                                    
+                                }
                                 // ----------------------------------------- fin
-                                println!("username : {}   Mot de passe : {}",account_name,account_mdp);
-                                
-                                 let mut data = fs::read_to_string("account.txt").unwrap();
-                                data.push_str("\n");
-                                data.push_str(account_name.trim());
-                                data.push_str(":");
-                                data.push_str(account_mdp.trim());
-                                
-                                fs::write("account.txt",data).expect("Impossible d'écrire dans le fichier.");
+                                if !existe {
+                                    println!("username : {}   Mot de passe : {}",account_name,account_mdp);
+                                    
+                                    let mut data = fs::read_to_string("account.txt").unwrap();
+                                    data.push_str("\n");
+                                    data.push_str(account_name.trim());
+                                    data.push_str(":");
+                                    data.push_str(account_mdp.trim());
+                                    
+                                    fs::write("account.txt",data).expect("Impossible d'écrire dans le fichier.");
+                                }
                             }
                             else if msg.find("!!connect") != Option::None {
                                 let svec : Vec<&str> = msg.split(" ").collect();
