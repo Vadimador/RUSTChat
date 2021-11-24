@@ -52,8 +52,10 @@ fn main() {
 
                 match socket.read_exact(&mut buff) {
                     Ok(_) => {
+                        let mc = new_magic_crypt!("magickey", 256);
                         let msg = buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>();
                         let msg = String::from_utf8(msg).expect("Message utf8 invalide");
+                        let msg = mc.decrypt_base64_to_string(&msg).unwrap();
                         // -------------------------------------- test pour créer un compte
                         if msg.chars().nth(0).unwrap() == '!' && msg.chars().nth(1).unwrap() == '!' {
                             if msg.find("!!create") != Option::None {
@@ -114,8 +116,6 @@ fn main() {
                         } 
                         else{
                             // on récupère le message ici et on déchiffre
-                            let mc = new_magic_crypt!("magickey", 256);
-                            let msg = mc.decrypt_base64_to_string(&msg).unwrap();
                             println!("{}: {:?}", addr, msg);
                             tx.send(msg).expect("échec de l'envoi de msg à rx"); 
                         }
@@ -156,7 +156,7 @@ fn main() {
             let account_name = svec[1].trim().to_owned();
             let account_mdp = svec[2].trim().to_owned();
             // -------------------------------- mrjoker hash le mdp reçu et tester la validité des informations
-
+            
 
 
             for client in &mut clients {
