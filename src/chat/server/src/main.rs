@@ -70,10 +70,10 @@ fn main() {
                                 //--------------------------------------- fin
                                 // ----------------------------------------- Ritchie vérifier que l'utilisateur n'existe pas déjà
                                 let contenu = fs::read_to_string("account.txt").expect("Quelque chose s'est mal passé lors de la lecture du fichier");
-                                let svec1 : Vec<&str> = contenu.split("\n").collect();
+                                let svec : Vec<&str> = contenu.split("\n").collect();
                                 let mut existe = false;
                                 //println!("{:?}",svec1);
-                                for x in & svec1 {
+                                for x in & svec {
                                     let exist : Vec<&str> = x.split(":").collect();
                                     //println!("{} = {}", account_name, exist[0]);
                                     if account_name.eq(&exist[0]) {
@@ -155,22 +155,45 @@ fn main() {
             let account_ip = svec[0].trim().to_owned();
             let account_name = svec[1].trim().to_owned();
             let account_mdp = svec[2].trim().to_owned();
-            // -------------------------------- mrjoker hash le mdp reçu et tester la validité des informations
             
+            // ---- On vérifie que les informations donnée par l'utilisateur sont correct
+            let contenu = fs::read_to_string("account.txt").expect("Quelque chose s'est mal passé lors de la lecture du fichier");
+            let svec : Vec<&str> = contenu.split("\n").collect();
+            let mut exist = false;
+            for x in & svec {
+                let ctab : Vec<&str> = x.split(":").collect();
+                if account_name.eq(ctab[0].trim()) {
+                    if account_mdp.eq(ctab[1].trim()) {
+                        println!("{} s'est connecté !",account_name);
+                        exist = true;
+                    }
+                    break;
+                }
+            }
 
-
+            // réponse au client en question
             for client in &mut clients {
                 if account_ip.eq(&client.1) {
-                    let mut buff2 = String::from("!!connected pseudo").into_bytes();
-                    buff2.resize(MSG_SIZE, 0);
-                    //let monclient = &mut client.0;
-                    client.0.write_all(&buff2).expect("erreur");
+                    if exist {
+                        let mut pseudo = String::from("!!connected ");
+                        pseudo.push_str(account_name.trim());
+                        send_to_client(client,pseudo);
+                    }
+                    else {
+                        send_to_client(client,String::from("!!error"));
+                    }
                     break;
                 }
             }
         }
         sleep();
     }
+}
+
+fn send_to_client(client : &mut Client, msg: String) {
+    let mut msg = msg.into_bytes();
+    msg.resize(MSG_SIZE, 0);
+    client.0.write_all(&msg).expect("erreur");
 }
 
 #[cfg(test)]

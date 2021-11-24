@@ -67,6 +67,9 @@ fn main() {
                             anon = false;
                             println!("Vous êtes connecté en tant que \"{}\"",svec[1]);
                         }
+                        else if msg.find("!!error") != Option::None {
+                            println!("Le nom d'utilisateur ou le mot de passe est incorrect.");
+                        }
                     }
                     else {
                         println!("{:?}",msg);
