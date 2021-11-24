@@ -61,6 +61,15 @@ fn main() {
                                 let svec : Vec<&str> = msg.split(" ").collect();
                                 let account_name = svec[1].trim().to_owned();
                                 let account_mdp = svec[2].trim().to_owned();
+                                // -------------------------------------------- mrjoker hasher le mot de passe
+                                
+
+
+                                //--------------------------------------- fin
+                                // ----------------------------------------- Ritchie vérifier que l'utilisateur n'existe pas déjà
+
+
+                                // ----------------------------------------- fin
                                 println!("username : {}   Mot de passe : {}",account_name,account_mdp);
                                 
                                  let mut data = fs::read_to_string("account.txt").unwrap();
@@ -130,6 +139,11 @@ fn main() {
         if let Ok(msg) = srx.try_recv() {
             let svec : Vec<&str> = msg.split(" ").collect();
             let account_ip = svec[0].trim().to_owned();
+            let account_name = svec[1].trim().to_owned();
+            let account_mdp = svec[2].trim().to_owned();
+            // -------------------------------- mrjoker hash le mdp reçu et tester la validité des informations
+
+
 
             for client in &mut clients {
                 if account_ip.eq(&client.1) {
