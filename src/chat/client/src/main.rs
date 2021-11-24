@@ -49,9 +49,17 @@ fn main() {
                 let msg = buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>();
                 let msg = String::from_utf8(msg).ok().unwrap();
                 
-               //if msg.find(&name.clone()) == Option::None {
-                    println!("{:?}",msg);
-               //}
+                if !msg.is_empty() {
+                    if msg.chars().nth(0).unwrap() == '!' && msg.chars().nth(1).unwrap() == '!' {
+                        if msg.find("!!connected") != Option::None {
+                            println!("Vous êtes connecté !");
+                        }
+                    }
+                    else {
+                        println!("{:?}",msg);
+                    } 
+                 }
+                
             },
             Err(ref err) if err.kind() == ErrorKind::WouldBlock => (),
             Err(_) => {
@@ -109,6 +117,9 @@ fn main() {
                 msg.push_str(&account_mdp.trim());
                 //let msg = buff.trim().to_string();
                 tx.send(msg).expect("un problème est intervenu");
+            }
+            else if buff.find(":quit") != Option::None {
+                break;
             }
             else {
                 eprintln!("/!\\ La commande proposé n'existe pas.");
