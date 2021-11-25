@@ -21,7 +21,7 @@ mod tests {
 }
 
 
-const MSG_SIZE: usize = 100;
+const MSG_SIZE: usize = 256;
 
 enum Anon {
     Anonyme,

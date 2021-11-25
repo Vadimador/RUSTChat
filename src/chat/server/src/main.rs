@@ -9,7 +9,7 @@ use std::fs;
 use sha2::{Sha256, Digest};
 
 const LOCAL: &str = "127.0.0.1:6000";
-const MSG_SIZE: usize = 100;
+const MSG_SIZE: usize = 256;
 
 
 struct Client(std::net::TcpStream,String); // le string et l'ip:port du stream
@@ -46,72 +46,73 @@ fn main() {
                         let mc = new_magic_crypt!("magickey", 256);
                         let msg = buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>();
                         let msg = String::from_utf8(msg).expect("Message utf8 invalide");
-                        let msg = mc.decrypt_base64_to_string(&msg).unwrap();
-                        // -------------------------------------- test pour créer un compte
-                        if msg.starts_with('!') && msg.chars().nth(1).unwrap() == '!' {
-                            if msg.find("!!create") != Option::None {
-                                println!("demande de création d'un nouvelle account reçu !");
-                                let svec : Vec<&str> = msg.split(' ').collect();
-                                let account_name = svec[1].trim().to_owned();
-                                let account_mdp = svec[2].trim().to_owned();
-                                // -------------------------------------------- mrjoker hasher le mot de passe
+                        //let msg = mc.decrypt_base64_to_string(&msg);
+                        match mc.decrypt_base64_to_string(&msg) {
+                            Ok(_) => {
+                                let msg = mc.decrypt_base64_to_string(&msg).unwrap();
+                                // -------------------------------------- test pour créer un compte
+                                if msg.starts_with('!') && msg.chars().nth(1).unwrap() == '!' {
+                                    if msg.find("!!create") != Option::None {
+                                        println!("demande de création d'un nouvelle account reçu !");
+                                        let svec : Vec<&str> = msg.split(' ').collect();
+                                        let account_name = svec[1].trim().to_owned();
+                                        let account_mdp = svec[2].trim().to_owned();
 
-                                //--------------------------------------- fin
-                                // ----------------------------------------- Ritchie vérifier que l'utilisateur n'existe pas déjà
-                                let contenu = fs::read_to_string("account.txt").expect("Quelque chose s'est mal passé lors de la lecture du fichier");
-                                let svec : Vec<&str> = contenu.split('\n').collect();
-                                let mut existe = false;
-                                //println!("{:?}",svec1);
-                                for x in & svec {
-                                    let exist : Vec<&str> = x.split(':').collect();
-                                    //println!("{} = {}", account_name, exist[0]);
-                                    if account_name.eq(&exist[0]) {
-                                        println!("l'utilisateur existe déjà");
-                                        existe = true;
-                                        break;
+                                        // on vérifie que l'utilisateur n'existe pas déjà
+                                        let contenu = fs::read_to_string("account.txt").expect("Quelque chose s'est mal passé lors de la lecture du fichier");
+                                        let svec : Vec<&str> = contenu.split('\n').collect();
+                                        let mut existe = false;
+                                        for x in & svec {
+                                            let exist : Vec<&str> = x.split(':').collect();
+                                            if account_name.eq(&exist[0]) {
+                                                println!("l'utilisateur existe déjà");
+                                                existe = true;
+                                                break;
+                                            }
+                                            
+                                        }
+
+                                        if !existe {
+                                            let account_mdp = hash(&account_mdp);
+
+                                            println!("username : {}   Mot de passe : {}",account_name,account_mdp);
+                                            
+                                            let mut data = fs::read_to_string("account.txt").unwrap();
+                                            data.push('\n');
+                                            data.push_str(account_name.trim());
+                                            data.push(':');
+                                            data.push_str(account_mdp.trim());
+                                            
+                                            fs::write("account.txt",data).expect("Impossible d'écrire dans le fichier.");
+                                        }
                                     }
-                                    
+                                    else if msg.find("!!connect") != Option::None {
+                                        let svec : Vec<&str> = msg.split(' ').collect();
+                                        let account_name = svec[1].trim().to_owned();
+                                        let account_mdp = svec[2].trim().to_owned();
+
+                                        let mut data = addr.to_string();
+                                        data.push(' ');
+                                        data.push_str(account_name.trim());
+                                        data.push(' ');
+                                        data.push_str(account_mdp.trim());
+
+                                        stx.send(data).expect("Problème concernant l'envoi sur stx");
+                                        
+                                    }
+                                    else {
+                                        println!("Commande incorrect");
+                                    }
+                                } 
+                                else{
+                                    // on récupère le message ici et on déchiffre
+                                    println!("{}: {:?}", addr, msg);
+                                    tx.send(msg).expect("échec de l'envoi de msg à rx"); 
                                 }
-
-                                
-
-                                // ----------------------------------------- fin
-                                if !existe {
-                                    let account_mdp = hash(&account_mdp);
-
-                                    println!("username : {}   Mot de passe : {}",account_name,account_mdp);
-                                    
-                                    let mut data = fs::read_to_string("account.txt").unwrap();
-                                    data.push('\n');
-                                    data.push_str(account_name.trim());
-                                    data.push(':');
-                                    data.push_str(account_mdp.trim());
-                                    
-                                    fs::write("account.txt",data).expect("Impossible d'écrire dans le fichier.");
-                                }
+                            },
+                            Err(ref err) => {
+                                println!("Une erreur lors du décryptage est survenue. {:?}",err);
                             }
-                            else if msg.find("!!connect") != Option::None {
-                                let svec : Vec<&str> = msg.split(' ').collect();
-                                let account_name = svec[1].trim().to_owned();
-                                let account_mdp = svec[2].trim().to_owned();
-
-                                let mut data = addr.to_string();
-                                data.push(' ');
-                                data.push_str(account_name.trim());
-                                data.push(' ');
-                                data.push_str(account_mdp.trim());
-
-                                stx.send(data).expect("Problème concernant l'envoi sur stx");
-                                
-                            }
-                            else {
-                                println!("Commande incorrect");
-                            }
-                        } 
-                        else{
-                            // on récupère le message ici et on déchiffre
-                            println!("{}: {:?}", addr, msg);
-                            tx.send(msg).expect("échec de l'envoi de msg à rx"); 
                         }
                     }, 
 
