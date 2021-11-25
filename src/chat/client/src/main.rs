@@ -1,13 +1,3 @@
-// État des demandes du prof pour le serveur :
-//  - ownership : tchek
-//  - borrowing : tchek
-//  - des collections : theck, il y a un vecteur
-//  - des tests : X
-//  - de la propagation d'erreur : bof
-//  - des structures : nope 
-//  - des enums : ... non plus
-//  - des threads : OUI !
-
 use std::io::{self, ErrorKind, Read, Write};
 use std::net::TcpStream;
 use std::sync::mpsc::{self};
@@ -33,6 +23,11 @@ mod tests {
 
 const MSG_SIZE: usize = 100;
 
+enum Anon {
+    Anonyme,
+    Connecte,
+}
+
 fn main() {
     println!("lancement d'un client");
     let mut client = TcpStream::connect(LOCAL).expect("Le Stream n'a pas réussi à se connecter"); // connexion via tunnel en tcp (socket)
@@ -42,7 +37,7 @@ fn main() {
 
     let mut name : String = "anonymous".to_owned();
     let mut name_connected = "✅ bruh".to_owned();
-    let mut anon : bool = true;
+    let mut anon : Anon = Anon::Anonyme;
 
     println!("Écrire un message:");
     thread::spawn( move || loop {
@@ -53,7 +48,7 @@ fn main() {
 
     loop {
         let mut buff = vec![0; MSG_SIZE];
-        match client.read_exact(&mut buff) {
+        match client.read_exact(&mut buff) { // lit la socket
             Ok(_) => {
                 let msg = buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>();
                 let msg = String::from_utf8(msg).ok().unwrap();
@@ -64,7 +59,7 @@ fn main() {
                             name_connected = String::from("✅ ");
                             let svec : Vec<&str> = msg.split(' ').collect();
                             name_connected.push_str(svec[1]);
-                            anon = false;
+                            anon =  Anon::Connecte;
                             println!("Vous êtes connecté en tant que \"{}\"",svec[1]);
                         }
                         else if msg.find("!!error") != Option::None { // si il fail
@@ -84,7 +79,7 @@ fn main() {
             }
         }
 
-        if let Ok(buff) = rx.try_recv() {
+        if let Ok(buff) = rx.try_recv() { // reçois les entrées utilisateurs
             // ----------------------------------------------- Test pour savoir les commandes
             if buff.starts_with(':') {        
                 if buff.find(":name") != Option::None { // =========================== changer de pseudo quand on est anonymous
@@ -136,12 +131,14 @@ fn main() {
                     }
                 }
                 else if buff.find(":quit") != Option::None {
-                    if !anon {
-                        anon = true;
-                        println!("Vous vous êtes déconnecté.");
-                    }
-                    else {
-                       break; 
+                    match anon {
+                        Anon::Anonyme => {
+                            break;
+                        },
+                        Anon::Connecte => {
+                            anon = Anon::Anonyme;
+                            println!("Vous vous êtes déconnecté.");
+                        }
                     }
                     
                 }
@@ -157,14 +154,16 @@ fn main() {
                 }
             }
             else {
-                //let mc = new_magic_crypt!("magickey", 256);
                 let mut msg : String;
-                if anon {
-                    msg = name.clone();
+                match anon {
+                    Anon::Anonyme => {
+                        msg = name.clone();
+                    },
+                    Anon::Connecte => {
+                        msg = name_connected.clone();
+                    }
                 }
-                else {
-                    msg = name_connected.clone();
-                }
+                    
                 msg.push_str(" : ");
                 msg.push_str(buff.trim());
                

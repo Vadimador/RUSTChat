@@ -1,13 +1,3 @@
-// État des demandes du prof pour le serveur :
-//  - ownership : OUI
-//  - borrowing : OUI
-//  - des collections : theck, il y a un vecteur
-//  - des tests : X
-//  - de la propagation d'erreur : bof
-//  - des structures : OUI
-//  - des enums : X
-//  - des threads : OUI !
-
 
 use std::io::{ErrorKind, Read, Write};
 use std::net::TcpListener;
@@ -137,21 +127,13 @@ fn main() {
         }
 
         if let Ok(msg) = rx.try_recv() {
-            //let c = clients.clone();
-            clients = clients.into_iter().filter_map(|mut client| {
+
+            for client in &mut clients {
                 let mut buff = msg.clone().into_bytes();
                 buff.resize(MSG_SIZE, 0);
 
-                client.0.write_all(&buff).map(|_| client).ok()
-                
-            }).collect::<Vec<_>>();
-            
-            /*for mut c in &clients {
-                let mut buff = msg.clone().into_bytes();
-                buff.resize(MSG_SIZE, 0);
-
-                c.0.write_all(&buff);
-            }*/
+                client.0.write_all(&buff).expect("Connexion interrompu.");
+            }
         }
 
         if let Ok(msg) = srx.try_recv() {
