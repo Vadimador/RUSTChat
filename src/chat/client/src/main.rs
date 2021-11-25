@@ -13,6 +13,7 @@ const LOCAL: &str = "127.0.0.1:6000";
 #[cfg(test)]
 mod tests {
     #[test]
+// Le test échoue lorsque le serveur est éteint
     fn test_tcpstream() {
         use std::net::TcpStream;        
         const LOCAL: &str = "127.0.0.1:6000";
@@ -20,6 +21,27 @@ mod tests {
     }
 }
 
+
+#[cfg(test)]
+mod test_crypto {
+    #[test]
+    fn test_crypto(){
+
+        use magic_crypt::new_magic_crypt;
+        use magic_crypt::MagicCryptTrait;
+            
+        let mc = new_magic_crypt!("magickey", 256);
+
+        let base64 = mc.encrypt_str_to_base64("test de chiffrement");
+
+        assert_eq!("nS5LGKNVbvoGNRFegY43NpJEsGSB8B69qNrR8dOf2Ng=", base64);
+
+        assert_eq!("test de chiffrement", mc.decrypt_base64_to_string(&base64).unwrap());
+
+    }
+        
+    
+}
 
 const MSG_SIZE: usize = 256;
 
