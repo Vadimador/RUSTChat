@@ -165,10 +165,10 @@ fn main() {
                     if exist {
                         let mut pseudo = String::from("!!connected ");
                         pseudo.push_str(account_name.trim());
-                        send_to_client(client,pseudo);
+                        send_to_client(client,pseudo).expect("Impossible d'envoyer au client");
                     }
                     else {
-                        send_to_client(client,String::from("!!error"));
+                        send_to_client(client,String::from("!!error")).expect("Impossible d'envoyer au client");
                     }
                     break;
                 }
@@ -178,10 +178,11 @@ fn main() {
     }
 }
 
-fn send_to_client(client : &mut Client, msg: String) {
+fn send_to_client(client : &mut Client, msg: String) -> std::io::Result<()> { // Propagation d'erreur
     let mut msg = msg.into_bytes();
     msg.resize(MSG_SIZE, 0);
-    client.0.write_all(&msg).expect("erreur");
+    client.0.write_all(&msg)?;
+    Ok(())
 }
 
 

@@ -130,7 +130,7 @@ fn main() {
                         msg.push_str(account_name.trim());
                         msg.push(' ');
                         msg.push_str(account_mdp.trim());
-                        send(&mut client, msg);
+                        send(&mut client, msg).expect("Une erreur est apparue lors de l'envoie au client.");
                     }
                     else {
                         println!("erreur dans le nombre d'argument, tapez \":help\" pour plus d'information.");
@@ -146,7 +146,7 @@ fn main() {
                         msg.push_str(account_name.trim());
                         msg.push(' ');
                         msg.push_str(account_mdp.trim());
-                        send(&mut client, msg);
+                        send(&mut client, msg).expect("Une erreur est apparue lors de l'envoie au client.");
                     }
                     else {
                         println!("erreur dans le nombre d'argument, tapez \":help\" pour plus d'information.");
@@ -189,7 +189,7 @@ fn main() {
                 msg.push_str(" : ");
                 msg.push_str(buff.trim());
                
-                send(&mut client,msg);
+                send(&mut client,msg).expect("Une erreur est apparue lors de l'envoie au client.");
             }
         }
     }
@@ -197,10 +197,11 @@ fn main() {
 
 }
 
-fn send(client : &mut std::net::TcpStream, msg : String) {
+fn send(client : &mut std::net::TcpStream, msg : String) -> std::io::Result<()> { // propagation d'erreur
     let mc = new_magic_crypt!("magickey", 256);
     let msg = mc.encrypt_str_to_base64(&msg);
     let mut msg = msg.into_bytes();
     msg.resize(MSG_SIZE, 0);
-    client.write_all(&msg).expect("l'écriture sur le socket a échoué");
+    client.write_all(&msg)?;
+    Ok(())
 }
